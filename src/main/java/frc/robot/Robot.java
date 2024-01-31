@@ -55,7 +55,7 @@ public class Robot extends TimedRobot {
 
   private XboxController m_Controller = new XboxController(0);
 
-  private double steerOffsetRRWheel = 4.304;
+  private double steerOffsetRRWheel = 2.154;
  
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -135,7 +135,8 @@ public class Robot extends TimedRobot {
   @Override
   public void robotPeriodic() {
     SmartDashboard.putNumber("Steer Relative Encoder", Rotation2d.fromRadians(m_steerEncoder.getPosition()).getDegrees());
-    SmartDashboard.putNumber("Steer Absolute Encoder", m_steerAbsoluteEncoder.getAbsolutePosition().getValue());
+    SmartDashboard.putNumber("Steer Absolute Encoder Raw", m_steerAbsoluteEncoder.getAbsolutePosition().getValue());
+    SmartDashboard.putNumber("Steer Absolute Encoder", getAbosultePositionInDegrees());
   }
 
   /**
@@ -163,9 +164,19 @@ public class Robot extends TimedRobot {
     m_steerEncoder.setPositionConversionFactor(2 * Math.PI / kSteerMotorRotationsPerRevolution);
   }
 
+  private double getAbosultePositionInDegrees()
+  {
+    double rotations = m_steerAbsoluteEncoder.getAbsolutePosition().getValue();
+    double degrees = rotations * 360;
+    if (degrees < 0)
+      degrees += 360;
+
+    return degrees;
+  }
+
   private void computeCurrentRelativeEncoderAngle()
   {
-    double absoluteInRadians = Rotation2d.fromDegrees(m_steerAbsoluteEncoder.getAbsolutePosition().getValue()).getRadians();
+    double absoluteInRadians = Rotation2d.fromDegrees(getAbosultePositionInDegrees()).getRadians();
 
     double startingAngle = steerOffsetRRWheel - absoluteInRadians;
 
@@ -182,7 +193,7 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during autonomous. */
   @Override
   public void autonomousPeriodic() {
-    double absoluteInDegrees = m_steerAbsoluteEncoder.getAbsolutePosition().getValue();
+    double absoluteInDegrees = getAbosultePositionInDegrees();
     double absoluteInRadians = Rotation2d.fromDegrees(absoluteInDegrees).getRadians();
 
     if (m_controlWithAbsoluteAngle)
@@ -231,6 +242,7 @@ public class Robot extends TimedRobot {
     SwerveDriveKinematics.desaturateWheelSpeeds(states, kMaxSpeedMetersPerSecond);
 
     var frontLeftState = states[0];
+    // m_steerPIDController.setReference(frontLeftState.angle.getRadians(), CANSparkMax.ControlType.kPosition);
 
     SwerveModuleState state = SwerveModuleState.optimize(frontLeftState,
       new Rotation2d(m_steerEncoder.getPosition()));
