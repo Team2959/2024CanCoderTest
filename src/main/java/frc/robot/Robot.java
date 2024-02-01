@@ -245,7 +245,7 @@ public class Robot extends TimedRobot {
     // m_steerPIDController.setReference(frontLeftState.angle.getRadians(), CANSparkMax.ControlType.kPosition);
 
     SwerveModuleState state = SwerveModuleState.optimize(frontLeftState,
-      new Rotation2d(m_steerEncoder.getPosition()));
+    new Rotation2d(m_steerEncoder.getPosition()));
 
     m_steerPIDController.setReference(state.angle.getRadians(), CANSparkMax.ControlType.kPosition);
   }
